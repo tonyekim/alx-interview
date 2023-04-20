@@ -1,24 +1,36 @@
+#!/usr/bin/python3
+"""UTF-8 Validation Module
+"""
+
+
 def validUTF8(data):
-    skip = 0
-    n = len(data)
-    for i in range(n):
-        if skip > 0:
-            skip -= 1
-            continue
-        if data[i] < 0 or data[i] > 255:
-            return False
-        if data[i] <= 0x7F:
-            # 1-byte encoding (0xxxxxxx)
-            pass
-        elif data[i] <= 0xDF and i+1 < n and 0x80 <= data[i+1] <= 0xBF:
-            # 2-byte encoding (110xxxxx 10xxxxxx)
-            skip = 1
-        elif data[i] <= 0xEF and i+2 < n and 0x80 <= data[i+1] <= 0xBF and 0x80 <= data[i+2] <= 0xBF:
-            # 3-byte encoding (1110xxxx 10xxxxxx 10xxxxxx)
-            skip = 2
-        elif data[i] <= 0xF4 and i+3 < n and 0x80 <= data[i+1] <= 0xBF and 0x80 <= data[i+2] <= 0xBF and 0x80 <= data[i+3] <= 0xBF:
-            # 4-byte encoding (11110xxx 10xxxxxx 10xxxxxx 10xxxxxx)
-            skip = 3
+    """Determines if a given data set represents a valid UTF-8 encoding.
+
+    Args:
+        data (list): list of integers
+
+    Returns:
+        bool: True if data is a valid UTF-8 encoding, else return False
+    """
+    n_bytes = 0
+
+    for num in data:
+        byte = num & 0xff
+        if n_bytes == 0:
+            mask1 = 1 << 7
+            mask2 = 1 << 6
+            while mask1 & byte:
+                n_bytes += 1
+                mask1 = mask1 >> 1
+                mask2 = mask2 >> 1
+            if n_bytes == 0:
+                continue
+            if n_bytes == 1 or n_bytes > 4:
+                return False
         else:
-            return False
-    return True
+            mask1 = 1 << 7
+            mask2 = 1 << 6
+            if not (byte & mask1 and not (byte & mask2)):
+                return False
+        n_bytes -= 1
+    return n_bytes == 0
