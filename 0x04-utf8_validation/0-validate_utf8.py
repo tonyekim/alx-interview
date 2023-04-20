@@ -1,72 +1,24 @@
-#!/usr/bin/python3
-"""UTF-8 validation module.
-"""
-
-
 def validUTF8(data):
-    """Checks if a given list of integers data set represents a valid UTF-8
-    encoding.
-
-    A character in UTF-8 can be 1 to 4 bytes long.
-    The data set can contain multiple characters.
-    The data will be represented by a list of integers.
-
-    Args:
-        data (list): A list of integers where each integer represents a byte
-        of the data.
-
-    Returns:
-        bool: True or False.
-    """
     skip = 0
     n = len(data)
     for i in range(n):
         if skip > 0:
             skip -= 1
             continue
-        if type(data[i]) != int or data[i] < 0 or data[i] > 0x10ffff:
+        if data[i] < 0 or data[i] > 255:
             return False
-        elif data[i] <= 0x7f:
-            skip = 0
-        elif data[i] & 0b11111000 == 0b11110000:
-            # 4-byte utf-8 character encoding
-            span = 4
-            if n - i >= span:
-                next_body = list(map(
-                    lambda x: x & 0b11000000 == 0b10000000,
-                    data[i + 1: i + span],
-                ))
-                if not all(next_body):
-                    return False
-                skip = span - 1
-            else:
-                return False
-        elif data[i] & 0b11110000 == 0b11100000:
-            # 3-byte utf-8 character encoding
-            span = 3
-            if n - i >= span:
-                next_body = list(map(
-                    lambda x: x & 0b11000000 == 0b10000000,
-                    data[i + 1: i + span],
-                ))
-                if not all(next_body):
-                    return False
-                skip = span - 1
-            else:
-                return False
-        elif data[i] & 0b11100000 == 0b11000000:
-            # 2-byte utf-8 character encoding
-            span = 2
-            if n - i >= span:
-                next_body = list(map(
-                    lambda x: x & 0b11000000 == 0b10000000,
-                    data[i + 1: i + span],
-                ))
-                if not all(next_body):
-                    return False
-                skip = span - 1
-            else:
-                return False
+        if data[i] <= 0x7F:
+            # 1-byte encoding (0xxxxxxx)
+            pass
+        elif data[i] <= 0xDF and i+1 < n and 0x80 <= data[i+1] <= 0xBF:
+            # 2-byte encoding (110xxxxx 10xxxxxx)
+            skip = 1
+        elif data[i] <= 0xEF and i+2 < n and 0x80 <= data[i+1] <= 0xBF and 0x80 <= data[i+2] <= 0xBF:
+            # 3-byte encoding (1110xxxx 10xxxxxx 10xxxxxx)
+            skip = 2
+        elif data[i] <= 0xF4 and i+3 < n and 0x80 <= data[i+1] <= 0xBF and 0x80 <= data[i+2] <= 0xBF and 0x80 <= data[i+3] <= 0xBF:
+            # 4-byte encoding (11110xxx 10xxxxxx 10xxxxxx 10xxxxxx)
+            skip = 3
         else:
             return False
     return True
