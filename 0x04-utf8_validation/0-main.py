@@ -13,3 +13,18 @@ print(validUTF8(data))
 
 data = [229, 65, 127, 256]
 print(validUTF8(data))
+
+data = [467, 133, 108]
+print(validUTF8(data), "x True")
+data = [240, 188, 128, 167]
+print(validUTF8(data), "x True")
+data = [235, 140]
+print(validUTF8(data), "x False")
+data = [345, 467]
+print(validUTF8(data), "x False")
+data = [250, 145, 145, 145, 145]
+print(validUTF8(data), "x False")
+data = [0, 0, 0, 0, 0, 0]
+print(validUTF8(data), "x True")
+data = []
+print(validUTF8(data), "x True")
